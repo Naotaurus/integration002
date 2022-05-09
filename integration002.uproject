@@ -149,6 +149,14 @@
 				"Mac",
 				"Linux"
 			]
+		},
+		{
+			"Name": "DMXEngine",
+			"Enabled": true
+		},
+		{
+			"Name": "DMXFixtures",
+			"Enabled": true
 		}
 	]
 }
