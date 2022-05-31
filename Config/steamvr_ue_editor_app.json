@@ -2,7 +2,7 @@
 	"source": "UE",
 	"applications": [
 		{
-			"app_key": "application.generated.ue.integration002-19764885.unrealeditor.exe",
+			"app_key": "application.generated.ue.integration002-20280985.unrealeditor.exe",
 			"launch_type": "url",
 			"url": "steam://launch/",
 			"action_manifest_path": "E:/UE4/integration002/Config/SteamVRBindings/steamvr_manifest.json",
@@ -10,7 +10,7 @@
 			{
 				"en_us":
 				{
-					"name": "integration002-19764885 [UE Editor]"
+					"name": "integration002-20280985 [UE Editor]"
 				}
 			}
 		}

@@ -157,6 +157,10 @@
 		{
 			"Name": "DMXFixtures",
 			"Enabled": true
+		},
+		{
+			"Name": "LiveLinkXR",
+			"Enabled": true
 		}
 	]
 }
