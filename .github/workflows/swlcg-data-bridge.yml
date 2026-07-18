@@ -66,6 +66,7 @@ jobs:
               'product_files': products,
               'card_count_before_supplement': len(cards),
               'objective_count_before_supplement': len(objectives),
+              'bridge_revision': 3,
           }
           Path('exports/manifest.json').write_text(
               json.dumps(manifest, ensure_ascii=False, indent=2),
