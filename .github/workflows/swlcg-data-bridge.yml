@@ -16,13 +16,16 @@ jobs:
       - name: Check out bridge repository
         uses: actions/checkout@v4
 
-      - name: Fetch public Star Wars LCG JSON database
-        run: git clone --depth 1 https://github.com/jgornick/swlcg-json.git source
+      - name: Fetch public Star Wars LCG databases
+        run: |
+          git clone --depth 1 https://github.com/jgornick/swlcg-json.git source
+          git clone --depth 1 https://github.com/crazymoo/OCTGN-Star-Wars-LCG-Plugin.git octgn
 
       - name: Build compact exports
         shell: bash
         run: |
           mkdir -p exports
+          cp 'octgn/o8g/Sets/Promise of Power/set.xml' exports/promise_of_power_set.xml
           python3 - <<'PY'
           import glob
           import json
@@ -55,11 +58,14 @@ jobs:
               encoding='utf-8',
           )
           manifest = {
-              'source_repository': 'https://github.com/jgornick/swlcg-json',
-              'source_commit': Path('source/.git/refs/heads/master').read_text(encoding='utf-8').strip() if Path('source/.git/refs/heads/master').exists() else None,
+              'json_source_repository': 'https://github.com/jgornick/swlcg-json',
+              'json_source_commit': Path('source/.git/refs/heads/master').read_text(encoding='utf-8').strip() if Path('source/.git/refs/heads/master').exists() else None,
+              'octgn_source_repository': 'https://github.com/crazymoo/OCTGN-Star-Wars-LCG-Plugin',
+              'octgn_source_commit': Path('octgn/.git/refs/heads/master').read_text(encoding='utf-8').strip() if Path('octgn/.git/refs/heads/master').exists() else None,
+              'supplemental_file': 'Promise of Power/set.xml',
               'product_files': products,
-              'card_count': len(cards),
-              'objective_count': len(objectives),
+              'card_count_before_supplement': len(cards),
+              'objective_count_before_supplement': len(objectives),
           }
           Path('exports/manifest.json').write_text(
               json.dumps(manifest, ensure_ascii=False, indent=2),
@@ -71,7 +77,7 @@ jobs:
       - name: Upload compact card data
         uses: actions/upload-artifact@v4
         with:
-          name: swlcg-card-data
+          name: swlcg-card-data-complete
           path: exports/
           if-no-files-found: error
           retention-days: 1
