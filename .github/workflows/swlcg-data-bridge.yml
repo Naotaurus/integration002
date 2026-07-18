@@ -1,0 +1,77 @@
+name: SWLCG data bridge
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/swlcg-data-bridge.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  export-card-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out bridge repository
+        uses: actions/checkout@v4
+
+      - name: Fetch public Star Wars LCG JSON database
+        run: git clone --depth 1 https://github.com/jgornick/swlcg-json.git source
+
+      - name: Build compact exports
+        shell: bash
+        run: |
+          mkdir -p exports
+          python3 - <<'PY'
+          import glob
+          import json
+          from pathlib import Path
+
+          cards = []
+          products = []
+          for filename in sorted(glob.glob('source/json/*.json')):
+              with open(filename, 'r', encoding='utf-8') as handle:
+                  payload = json.load(handle)
+              if not isinstance(payload, list):
+                  raise TypeError(f'{filename} is not a JSON array')
+              cards.extend(payload)
+              products.append({
+                  'file': Path(filename).name,
+                  'cards': len(payload),
+                  'objectives': sum(1 for card in payload if card.get('type') == 'Objective'),
+              })
+
+          objectives = [card for card in cards if card.get('type') == 'Objective']
+          objectives.sort(key=lambda card: (card.get('objectiveSetNumber') or 0, card.get('number') or 0))
+          cards.sort(key=lambda card: (card.get('objectiveSetNumber') or 0, card.get('objectiveSetSequence') or 0, card.get('number') or 0))
+
+          Path('exports/all_cards.json').write_text(
+              json.dumps(cards, ensure_ascii=False, separators=(',', ':')),
+              encoding='utf-8',
+          )
+          Path('exports/objective_sets.json').write_text(
+              json.dumps(objectives, ensure_ascii=False, separators=(',', ':')),
+              encoding='utf-8',
+          )
+          manifest = {
+              'source_repository': 'https://github.com/jgornick/swlcg-json',
+              'source_commit': Path('source/.git/refs/heads/master').read_text(encoding='utf-8').strip() if Path('source/.git/refs/heads/master').exists() else None,
+              'product_files': products,
+              'card_count': len(cards),
+              'objective_count': len(objectives),
+          }
+          Path('exports/manifest.json').write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2),
+              encoding='utf-8',
+          )
+          print(json.dumps(manifest, indent=2))
+          PY
+
+      - name: Upload compact card data
+        uses: actions/upload-artifact@v4
+        with:
+          name: swlcg-card-data
+          path: exports/
+          if-no-files-found: error
+          retention-days: 1
